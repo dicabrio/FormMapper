@@ -115,6 +115,13 @@ abstract class Form {
 
 	}
 
+	public function begin() {
+		return '<form id="'.$this->sIdentifier.'" method="'.$this->sMethod.'" action="'.$this->sAction.'">';
+	}
+
+	public function end() {
+		return '</form>';
+	}
 }
 
 

@@ -117,7 +117,7 @@ $oForm->listen();
 		<title>FormMapper example</title>
 	</head>
 	<body>
-
+		<?php echo $oForm->begin(); ?>
 		<form id="<?php echo $oForm->getIdentifier(); ?>" method="<?php echo $oForm->getMethod(); ?>" action="<?php echo $oForm->getAction(); ?>">
 			<table>
 				<tr>
@@ -129,6 +129,7 @@ $oForm->listen();
 					</td>
 				</tr>
 			</table>
+		<?php echo $oForm->end(); ?>
 		</form>
 	</body>
 </html>
