@@ -11,9 +11,9 @@
  */
 abstract class Form {
 
-/**
- * @var Request
- */
+	/**
+	 * @var Request
+	 */
 	private $oReq;
 
 	private $sMethod;
@@ -23,6 +23,8 @@ abstract class Form {
 	private $sIdentifier;
 
 	private $aFormElements = array();
+
+	private $aSubmitButtons = array();
 
 	/**
 	 * @param Request $oReq
@@ -39,7 +41,7 @@ abstract class Form {
 		$this->defineFormElements();
 	}
 
-	protected function defineFormElements();
+	abstract protected function defineFormElements();
 
 	private function getValueFromRequest($sElementIdentifier) {
 		if ($this->sMethod == 'post') {
@@ -62,6 +64,10 @@ abstract class Form {
 		
 	}
 
+	protected function addSubmitButton($sIdentifier, FormElement $oElement, FormHandler $oHandler) {
+		$this->aSubmitButtons[$sIdentifier] = array('FormElement' => $oElement, 'FormHandler' => $oHandler);
+	}
+
 	/**
 	 * @param string $sElementIdentifier
 	 * @return FormElement
@@ -72,6 +78,13 @@ abstract class Form {
 		}
 
 		return $this->aFormElements[$sElementIdentifier];
+	}
+
+	public function getSubmitButton($sButtonIentifier) {
+		if (isset($this->aSubmitButtons[$sButtonIentifier])) {
+			return $this->aSubmitButtons[$sButtonIentifier]['FormElement'];
+		}
+		return null;
 	}
 
 	public function getAction() {
@@ -85,6 +98,23 @@ abstract class Form {
 	public function getIdentifier() {
 		return $this->sIdentifier;
 	}
+
+	public function listen() {
+
+		foreach ($this->aSubmitButtons as $aSubmitButtonAndHandler) {
+			$oButton = $aSubmitButtonAndHandler['FormElement'];
+			$oHandler = $aSubmitButtonAndHandler['FormHandler'];
+
+			$sValueFromRequest = $this->getValueFromRequest($oButton->getName());
+
+			if ($sValueFromRequest == $oButton->getValue()) {
+				$oHandler->handleForm($this);
+			}
+		}
+
+
+	}
+
 }
 
 

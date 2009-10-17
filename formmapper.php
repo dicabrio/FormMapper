@@ -11,15 +11,7 @@
  */
 abstract class FormMapper {
 
-/**
- * add models that need special validation
- * @var array
- */
-	private $aFormfieldsToModel = array();
-
 	const C_DEFAULT_MODEL = 'TextNode';
-
-	const C_ERROR_TEXT_MODEL = 'ErrorText';
 
 	/**
 	 * @var Form
@@ -30,17 +22,16 @@ abstract class FormMapper {
 
 	private $aErrors = array();
 
+	private $aMappingFormElementsToDomainEntities = array();
+
 	public function __construct(Form $oForm) {
 		$this->oForm = $oForm;
-		$this->aFormfieldsToModel = $aMapping;
 	}
 
-	private function getFromReq($sField) {
-		if (Request::method() == Request::POST) {
-			return $this->oForm->post($sField);
-		}
+	abstract protected function defineFormElementToDomainEntityMapping();
 
-		return $this->oForm->get($sField);
+	protected function addFormElementToDomainEntityMapping($sFormElementIdentifier, $sDomainEntity) {
+		$this->aMappingFormElementsToDomainEntities[$sFormElementIdentifier] = $sDomainEntity;
 	}
 
 	/**
