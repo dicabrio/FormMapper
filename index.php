@@ -104,7 +104,6 @@ $oForm->listen();
 	</head>
 	<body>
 		<?php echo $oForm->begin(); ?>
-		<form id="<?php echo $oForm->getIdentifier(); ?>" method="<?php echo $oForm->getMethod(); ?>" action="<?php echo $oForm->getAction(); ?>">
 			<table>
 				<tr>
 					<td>
@@ -116,6 +115,5 @@ $oForm->listen();
 				</tr>
 			</table>
 		<?php echo $oForm->end(); ?>
-		</form>
 	</body>
 </html>
