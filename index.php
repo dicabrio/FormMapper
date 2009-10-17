@@ -3,41 +3,14 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-
-include('request.class.php');
+include('request.php');
 include('form.php');
 include('formelement.php');
+include('formhandler.php');
 include('formmapper.php');
 include('domainentity.php');
 include('domaintext.php');
-
-//include('')
-
-class Input implements FormElement {
-	private $sType;
-	private $sName;
-	private $sValue;
-	public function __construct($sType, $sName) {
-		$this->sName = $sName;
-		$this->sType = $sType;
-	}
-
-	public function setValue($sValue) {
-		$this->sValue = $sValue;
-	}
-
-	public function getValue() {
-		return $this->sValue;
-	}
-
-	public function getName() {
-		return $this->sName;
-	}
-
-	public function __toString() {
-		return '<input type="'.$this->sType.'" name="'.$this->sName.'" value="'.$this->sValue.'" />';
-	}
-}
+include('input.php');
 
 class Button extends Input {
 	public function __construct($sName, $sValue) {
@@ -57,59 +30,72 @@ class TextInput extends Input {
 		parent::__construct('text', $sName);
 	}
 }
-interface FormHandler {
-	public function handleForm(Form $oForm);
-}
-class JemoederHandler implements FormHandler {
+
+class SaveHandler implements FormHandler {
 	public function __construct() {
 
 	}
 
 	public function handleForm(Form $oForm) {
-		echo 'Jemoeder->handleForm called for form: '.$oForm->getIdentifier();
+		echo 'Save->handleForm called for form: '.$oForm->getIdentifier();
 	}
 }
 
-class JevaderHandler implements FormHandler {
+class CancelHandler implements FormHandler {
 	public function __construct() {
 
 	}
 
 	public function handleForm(Form $oForm) {
-		echo 'Jevader->handleForm called for form: '.$oForm->getIdentifier();
+		echo 'Cancel->handleForm called for form: '.$oForm->getIdentifier();
 	}
 }
 
 class TestForm extends Form {
 
-	public function __construct(Request $oReq) {
+	/**
+	 * @var FormHandler
+	 */
+	private $oHandlerSave;
+
+	/**
+	 * @var FormHandler
+	 */
+	private $oHandlerCancel;
+
+	/**
+	 * @param Request $oReq
+	 * @param FormHandler $oSaveHandler
+	 * @param FormHandler $oCancelHandler
+	 */
+	public function __construct(Request $oReq, FormHandler $oSaveHandler, FormHandler $oCancelHandler) {
+
+		$this->oHandlerSave = $oSaveHandler;
+		$this->oHandlerCancel = $oCancelHandler;
+
 		parent::__construct($oReq, $_SERVER['PHP_SELF'], Request::POST, 'testform');
+
+
 	}
 
 	protected function defineFormElements() {
 		parent::addFormElement(new TextInput('test'));
 
-		parent::addSubmitButton('save', new ActionButton('jemoeder'), new JemoederHandler());
-		parent::addSubmitButton('cancel', new ActionButton('jevader'), new JevaderHandler());
+		parent::addSubmitButton('save', new ActionButton('Save'), $this->oHandlerSave);
+		parent::addSubmitButton('cancel', new ActionButton('Cancel'), $this->oHandlerCancel);
 	}
 
 }
 
-class TestFormMapper extends FormMapper {
-
-	protected function defineFormElementToDomainEntityMapping() {
-		parent::addFormElementToDomainEntityMapping('test', 'DomainText');
-	}
-}
-
-$oForm = new TestForm(Request::getInstance());
+//class TestFormMapper extends FormMapper {
+//
+//	protected function defineFormElementToDomainEntityMapping() {
+//		parent::addFormElementToDomainEntityMapping('test', 'DomainText');
+//	}
+//}
+$oForm = new TestForm(Request::getInstance(), new SaveHandler(), new CancelHandler());
 $oForm->listen();
 
-//
-//if ($oForm->isSubmitted()) {
-//	$oMapper = new TestFormMapper($oForm);
-//	$oMapper->buildModels();
-//}
 
 ?>
 <html>
