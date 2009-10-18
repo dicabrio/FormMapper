@@ -96,11 +96,12 @@ abstract class FormMapper {
 	 */
 	private function constructModelFromFormElement($sFormElementIdentifier, $sDomainEntity) {
 
+		$oFormElement = $this->oForm->getFormElement($sFormElementIdentifier);
 		try {
-			$oFormElement = $this->oForm->getFormElement($sFormElementIdentifier);
 			return $this->constructModel($sDomainEntity, array($oFormElement->getValue()));
 		} catch (Exception $e) {
 
+			$oFormElement->notMapped();
 			$this->aMappingErrors[$sFormElementIdentifier] = 'error'.$sFormElementIdentifier;
 
 			return null;

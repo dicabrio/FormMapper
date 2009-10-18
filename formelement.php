@@ -25,4 +25,9 @@ interface FormElement {
 	 * @param string $sValue
 	 */
 	public function setValue($sValue);
+
+	/**
+	 * when this element cannot be mapped this method will be called
+	 */
+	public function notMapped();
 }

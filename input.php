@@ -20,6 +20,11 @@ class Input implements FormElement {
 	private $sValue;
 
 	/**
+	 * @var string
+	 */
+	private $sStyle;
+
+	/**
 	 * @param string $sType
 	 * @param string $sName
 	 */
@@ -53,6 +58,10 @@ class Input implements FormElement {
 	 * @return string
 	 */
 	public function __toString() {
-		return '<input type="'.$this->sType.'" name="'.$this->sName.'" value="'.$this->sValue.'" />';
+		return '<input type="'.$this->sType.'" name="'.$this->sName.'" value="'.$this->sValue.'"'.$this->sStyle.' />';
+	}
+
+	public function notMapped() {
+		$this->sStyle = ' style="border: 1px solid red;"';
 	}
 }
