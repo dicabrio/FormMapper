@@ -51,6 +51,11 @@ abstract class FormMapper {
 			throw new FormMapperException('The specified domain entity does not exist: '.$sDomainEntity);
 		}
 
+		$oReflection = new ReflectionClass($sDomainEntity);
+		if (!$oReflection->implementsInterface('DomainEntity')) {
+			throw new FormMapperException('Given domain entity is not a valid DomainEntity');
+		}
+
 		$this->aFormElementsToDomainEntitiesMapping[$sFormElementIdentifier] = $sDomainEntity;
 	}
 
@@ -159,6 +164,10 @@ abstract class FormMapper {
 		return $this->aMappingErrors;
 	}
 
+	/**
+	 * @param string $sFormElementIdentifier
+	 * @return DomainEntity
+	 */
 	public function getModel($sFormElementIdentifier) {
 		if (isset($this->aConstructedModels[$sFormElementIdentifier])) {
 			return $this->aConstructedModels[$sFormElementIdentifier];
