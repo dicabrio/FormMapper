@@ -1,6 +1,6 @@
 <?php
 /**
- *
+ * 
  */
 interface FormHandler {
 

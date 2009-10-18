@@ -14,11 +14,6 @@ interface DomainEntity {
 	/**
 	 * @return string
 	 */
-	public function getValue();
-
-	/**
-	 * @return string
-	 */
 	public function __toString();
 
 	/**

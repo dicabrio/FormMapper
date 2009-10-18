@@ -11,6 +11,7 @@ include('formmapper.php');
 include('domainentity.php');
 include('domaintext.php');
 include('input.php');
+include('shorttext.php');
 
 class Button extends Input {
 	public function __construct($sName, $sValue) {
@@ -31,12 +32,41 @@ class TextInput extends Input {
 	}
 }
 
-class SaveHandler implements FormHandler {
-	public function __construct() {
+class TestMapper extends FormMapper {
 
+	protected function defineFormElementToDomainEntityMapping() {
+		$this->addFormElementToDomainEntityMapping('test', 'ShortText');
+	}
+
+}
+
+class SaveHandler implements FormHandler {
+
+	/**
+	 * @var FormMapper
+	 */
+	private $oMapper;
+
+	public function __construct(FormMapper $oMapper) {
+		$this->oMapper = $oMapper;
 	}
 
 	public function handleForm(Form $oForm) {
+
+		try {
+			$this->oMapper->constructModelsFromForm();
+			echo 'done mapping';
+			echo  '<pre>';
+			print_r($this->oMapper->getModel('test'));
+			echo '</pre>';
+
+		} catch (FormMapperException $e) {
+			// error when mapping
+			echo  '<pre>';
+			print_r($this->oMapper->getMappingErrors());
+			echo '</pre>';
+		}
+
 		echo 'Save->handleForm called for form: '.$oForm->getIdentifier();
 	}
 }
@@ -54,48 +84,28 @@ class CancelHandler implements FormHandler {
 class TestForm extends Form {
 
 	/**
-	 * @var FormHandler
-	 */
-	private $oHandlerSave;
-
-	/**
-	 * @var FormHandler
-	 */
-	private $oHandlerCancel;
-
-	/**
 	 * @param Request $oReq
 	 * @param FormHandler $oSaveHandler
 	 * @param FormHandler $oCancelHandler
 	 */
-	public function __construct(Request $oReq, FormHandler $oSaveHandler, FormHandler $oCancelHandler) {
-
-		$this->oHandlerSave = $oSaveHandler;
-		$this->oHandlerCancel = $oCancelHandler;
-
+	public function __construct(Request $oReq) {
 		parent::__construct($oReq, $_SERVER['PHP_SELF'], Request::POST, 'testform');
-
-
 	}
 
 	protected function defineFormElements() {
 		parent::addFormElement(new TextInput('test'));
-
-		parent::addSubmitButton('save', new ActionButton('Save'), $this->oHandlerSave);
-		parent::addSubmitButton('cancel', new ActionButton('Cancel'), $this->oHandlerCancel);
 	}
 
 }
 
-//class TestFormMapper extends FormMapper {
-//
-//	protected function defineFormElementToDomainEntityMapping() {
-//		parent::addFormElementToDomainEntityMapping('test', 'DomainText');
-//	}
-//}
-$oForm = new TestForm(Request::getInstance(), new SaveHandler(), new CancelHandler());
-$oForm->listen();
 
+$oForm = new TestForm(Request::getInstance());
+
+$oFormMapper = new TestMapper($oForm);
+$oForm->addSubmitButton('save', new ActionButton('Save'), new SaveHandler($oFormMapper));
+$oForm->addSubmitButton('cancel', new ActionButton('Cancel'), new CancelHandler());
+
+$oForm->listen();
 
 ?>
 <html>
@@ -104,16 +114,23 @@ $oForm->listen();
 	</head>
 	<body>
 		<?php echo $oForm->begin(); ?>
-			<table>
-				<tr>
-					<td>
-						<label>test: </label>
-						<?php echo $oForm->getFormElement('test'); ?>
-						<?php echo $oForm->getSubmitButton('save'); ?>
-						<?php echo $oForm->getSubmitButton('cancel'); ?>
-					</td>
-				</tr>
-			</table>
+		<table>
+			<tr>
+				<td>
+					<label>test: </label>
+					<?php echo $oForm->getFormElement('test'); ?>
+					<?php echo $oForm->getSubmitButton('save'); ?>
+					<?php echo $oForm->getSubmitButton('cancel'); ?>
+				</td>
+			</tr>
+		</table>
 		<?php echo $oForm->end(); ?>
+
+		<?php $sFileContent = file_get_contents(__FILE__); ?>
+<strong>Simple implementation:</strong>
+<pre style="background: #ccc; padding: 10px;">
+<?php echo htmlentities($sFileContent); ?>
+</pre>
+
 	</body>
 </html>

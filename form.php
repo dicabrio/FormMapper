@@ -24,7 +24,7 @@ abstract class Form {
 
 	private $aFormElements = array();
 
-	private $aSubmitButtons = array();
+	private $aSubmitButtonsAndHandlers = array();
 
 	/**
 	 * @param Request $oReq
@@ -41,69 +41,76 @@ abstract class Form {
 		$this->defineFormElements();
 	}
 
+	/**
+	 * In this method you should define the form. This is done to force you adding elements
+	 */
 	abstract protected function defineFormElements();
 
-	private function getValueFromRequest($sElementIdentifier) {
+	/**
+	 * @param string $sRequestKey
+	 * @return mixed
+	 */
+	private function getValueFromRequest($sRequestKey) {
 		if ($this->sMethod == 'post') {
-			return $this->oReq->post($sElementIdentifier);
+			return $this->oReq->post($sRequestKey);
 		}
 
-		return $this->oReq->get($sElementIdentifier);
+		return $this->oReq->get($sRequestKey);
 	}
 
 	/**
 	 * this method is only allowed to be called in the defineFormElements method
 	 * 
-	 * @param FormElement $oElement
+	 * @param FormElement $oFormElement
 	 */
-	protected function addFormElement(FormElement $oElement) {
+	protected function addFormElement(FormElement $oFormElement) {
 
-		$sElementName = $oElement->getName();
-		$oElement->setValue($this->getValueFromRequest($sElementName));
-		$this->aFormElements[$oElement->getName()] = $oElement;
+		$sFormElementName = $oFormElement->getName();
+		$oFormElement->setValue($this->getValueFromRequest($sFormElementName));
+		$this->aFormElements[$oFormElement->getName()] = $oFormElement;
 		
 	}
 
-	protected function addSubmitButton($sIdentifier, FormElement $oElement, FormHandler $oHandler) {
-		$this->aSubmitButtons[$sIdentifier] = array('FormElement' => $oElement, 'FormHandler' => $oHandler);
+	/**
+	 * @param string $sFormElementIdentifier
+	 * @return FormElement
+	 */
+	public function getFormElement($sFormElementIdentifier) {
+		if (!isset($this->aFormElements[$sFormElementIdentifier])) {
+			throw new FormException('requested form element is not defined in this form: '.$sFormElementIdentifier);
+		}
+
+		return $this->aFormElements[$sFormElementIdentifier];
 	}
 
 	/**
-	 * @param string $sElementIdentifier
-	 * @return FormElement
+	 * @param string $sButtonIdentifier
+	 * @param FormElement $oElement
+	 * @param FormHandler $oHandler
 	 */
-	public function getFormElement($sElementIdentifier) {
-		if (!isset($this->aFormElements[$sElementIdentifier])) {
-			throw new FormException('requested form element is not defined in this form: '.$sElementIdentifier);
-		}
-
-		return $this->aFormElements[$sElementIdentifier];
+	public function addSubmitButton($sButtonIdentifier, FormElement $oElement, FormHandler $oHandler) {
+		$this->aSubmitButtonsAndHandlers[$sButtonIdentifier] = array('FormElement' => $oElement, 'FormHandler' => $oHandler);
 	}
 
-	public function getSubmitButton($sButtonIentifier) {
-		if (isset($this->aSubmitButtons[$sButtonIentifier])) {
-			return $this->aSubmitButtons[$sButtonIentifier]['FormElement'];
+	/**
+	 * @param string $sButtonIdentifier
+	 * @return FormElement
+	 */
+	public function getSubmitButton($sButtonIdentifier) {
+		if (isset($this->aSubmitButtonsAndHandlers[$sButtonIdentifier])) {
+			return $this->aSubmitButtonsAndHandlers[$sButtonIdentifier]['FormElement'];
 		}
 		return null;
 	}
 
-	public function getAction() {
-		return $this->sAction;
-	}
-
-	public function getMethod() {
-		return $this->sMethod;
-	}
-
-	public function getIdentifier() {
-		return $this->sIdentifier;
-	}
-
+	/**
+	 * Listen if the form is submitted. It will tell the handlers to fire if the right button is pressed
+	 */
 	public function listen() {
 
-		foreach ($this->aSubmitButtons as $aSubmitButtonAndHandler) {
-			$oButton = $aSubmitButtonAndHandler['FormElement'];
-			$oHandler = $aSubmitButtonAndHandler['FormHandler'];
+		foreach ($this->aSubmitButtonsAndHandlers as $aSingleSubmitButtonAndHandler) {
+			$oButton = $aSingleSubmitButtonAndHandler['FormElement'];
+			$oHandler = $aSingleSubmitButtonAndHandler['FormHandler'];
 
 			$sValueFromRequest = $this->getValueFromRequest($oButton->getName());
 
@@ -115,12 +122,25 @@ abstract class Form {
 
 	}
 
+	/**
+	 * @return string
+	 */
 	public function begin() {
 		return '<form id="'.$this->sIdentifier.'" method="'.$this->sMethod.'" action="'.$this->sAction.'">';
 	}
 
+	/**
+	 * @return sring
+	 */
 	public function end() {
 		return '</form>';
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getIdentifier() {
+		return $this->sIdentifier;
 	}
 }
 

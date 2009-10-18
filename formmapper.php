@@ -1,37 +1,57 @@
 <?php
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 /**
- * Description of formmapperclass
+ * FormMapper is a class that maps FormElements to DomainEntities
  *
  * @author robertcabri
  */
 abstract class FormMapper {
 
-	const C_DEFAULT_MODEL = 'TextNode';
 
 	/**
 	 * @var Form
 	 */
 	private $oForm;
 
-	private $aResultModels = array();
+	/**
+	 * @var array
+	 */
+	private $aConstructedModels = array();
 
-	private $aErrors = array();
+	/**
+	 * @var array
+	 */
+	private $aMappingErrors = array();
 
-	private $aMappingFormElementsToDomainEntities = array();
+	/**
+	 * @var array
+	 */
+	private $aFormElementsToDomainEntitiesMapping = array();
 
+	/**
+	 * @param Form $oForm
+	 */
 	public function __construct(Form $oForm) {
 		$this->oForm = $oForm;
+
+		$this->defineFormElementToDomainEntityMapping();
 	}
 
+	/**
+	 * setup rules for form to domainentities mapping
+	 */
 	abstract protected function defineFormElementToDomainEntityMapping();
 
+	/**
+	 * @param string $sFormElementIdentifier
+	 * @param string $sDomainEntity
+	 */
 	protected function addFormElementToDomainEntityMapping($sFormElementIdentifier, $sDomainEntity) {
-		$this->aMappingFormElementsToDomainEntities[$sFormElementIdentifier] = $sDomainEntity;
+
+		if (!class_exists($sDomainEntity, true)) {
+			throw new FormMapperException('The specified domain entity does not exist: '.$sDomainEntity);
+		}
+
+		$this->aFormElementsToDomainEntitiesMapping[$sFormElementIdentifier] = $sDomainEntity;
 	}
 
 	/**
@@ -39,28 +59,47 @@ abstract class FormMapper {
 	 * @param array $aArguments
 	 * @return TextElement
 	 */
-	private function buildInputToModel($sInputField, $aArguments=array()) {
+	//	private function buildInputToModel($sInputField, $aArguments=array()) {
+	//
+	//		if (!isset($this->aResultModels[$sInputField])) {
+	//
+	//			try {
+	//
+	//				if (isset($this->aFormfieldsToModel[$sInputField])) {
+	//					$sModelClass = $this->aFormfieldsToModel[$sInputField];
+	//				} else {
+	//					$sModelClass = self::C_DEFAULT_MODEL;
+	//				}
+	//
+	//				array_unshift($aArguments, $this->getFromReq($sInputField));
+	//				$this->aResultModels[$sInputField] = $this->constructModel($sModelClass, $aArguments);
+	//			} catch (Exception $e) {
+	//				$this->aResultModels[$sInputField] = $this->constructModel(self::C_ERROR_TEXT_MODEL, array($this->getFromReq($sInputField)));
+	//				$this->aErrors[$sInputField] = 'error'.$sInputField;
+	//			}
+	//
+	//		}
+	//
+	//		return $this->aResultModels[$sInputField];
+	//	}
 
-		if (!isset($this->aResultModels[$sInputField])) {
+	/**
+	 *
+	 * @param string $sFormElementIdentifier
+	 * @param string $sDomainEntity
+	 * @return DomainEntity
+	 */
+	private function constructModelFromFormElement($sFormElementIdentifier, $sDomainEntity) {
 
-			try {
+		try {
+			$oFormElement = $this->oForm->getFormElement($sFormElementIdentifier);
+			return $this->constructModel($sDomainEntity, array($oFormElement->getValue()));
+		} catch (Exception $e) {
 
-				if (isset($this->aFormfieldsToModel[$sInputField])) {
-					$sModelClass = $this->aFormfieldsToModel[$sInputField];
-				} else {
-					$sModelClass = self::C_DEFAULT_MODEL;
-				}
+			$this->aMappingErrors[$sFormElementIdentifier] = 'error'.$sFormElementIdentifier;
 
-				array_unshift($aArguments, $this->getFromReq($sInputField));
-				$this->aResultModels[$sInputField] = $this->constructModel($sModelClass, $aArguments);
-			} catch (Exception $e) {
-				$this->aResultModels[$sInputField] = $this->constructModel(self::C_ERROR_TEXT_MODEL, array($this->getFromReq($sInputField)));
-				$this->aErrors[$sInputField] = 'error'.$sInputField;
-			}
-
+			return null;
 		}
-
-		return $this->aResultModels[$sInputField];
 	}
 
 	/**
@@ -81,38 +120,27 @@ abstract class FormMapper {
 	 * @param string $sInputFieldString
 	 * @return array
 	 */
-	private function getRequiredModels($sInputFieldString) {
-		$aFields = array($sInputFieldString);
-		if (strpos($sInputFieldString, ',')) {
-			$aFields = explode(',', $sInputFieldString);
-		}
-
-		$aArgument = array();
-		foreach ($aFields as $sField) {
-			$aArgument[] = $this->buildInputToModel($sField);
-		}
-
-		return $aArgument;
-	}
+	//	private function getRequiredModels($sInputFieldString) {
+	//		$aFields = array($sInputFieldString);
+	//		if (strpos($sInputFieldString, ',')) {
+	//			$aFields = explode(',', $sInputFieldString);
+	//		}
+	//
+	//		$aArgument = array();
+	//		foreach ($aFields as $sField) {
+	//			$aArgument[] = $this->buildInputToModel($sField);
+	//		}
+	//
+	//		return $aArgument;
+	//	}
 
 	/**
-	 * @param string $aInputFields
+	 * @throws FormMapperException if there are errors while mapping formelements to domainentities
 	 */
-	public function buildModels($aInputFields) {
-		if (!is_array($aInputFields)) {
-			throw new InvalidArgumentException('Given parameter is not an array', 1);
-		}
+	public function constructModelsFromForm() {
 
-		foreach ($aInputFields as $sInputField) {
-			$sFieldIdentifier = $sInputField;
-			if (strpos($sInputField, ':')) {
-				$aModelFields = explode(':', $sInputField);
-				$sNeededInput = $sFieldIdentifier = array_shift($aModelFields);
-				$aArgumentModels = $this->getRequiredModels(current($aModelFields));
-				$this->buildInputToModel($sNeededInput, $aArgumentModels);
-			} else {
-				$this->buildInputToModel($sInputField);
-			}
+		foreach ($this->aFormElementsToDomainEntitiesMapping as $sFormElementIdentifier => $sDomainEntity) {
+			$this->aConstructedModels[$sFormElementIdentifier] = $this->constructModelFromFormElement($sFormElementIdentifier, $sDomainEntity);
 		}
 
 		if ($this->hasErrors()) {
@@ -124,16 +152,16 @@ abstract class FormMapper {
 	 * @return boolean
 	 */
 	private function hasErrors() {
-		return (count($this->aErrors) > 0);
+		return (count($this->aMappingErrors) > 0);
 	}
 
-	public function getErrors() {
-		return $this->aErrors;
+	public function getMappingErrors() {
+		return $this->aMappingErrors;
 	}
 
-	public function getModel($sField) {
-		if (isset($this->aResultModels[$sField])) {
-			return $this->aResultModels[$sField];
+	public function getModel($sFormElementIdentifier) {
+		if (isset($this->aConstructedModels[$sFormElementIdentifier])) {
+			return $this->aConstructedModels[$sFormElementIdentifier];
 		}
 
 		return null;
