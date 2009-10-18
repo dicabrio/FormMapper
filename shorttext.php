@@ -15,7 +15,7 @@ class ShortText extends DomainText {
 	 *
 	 * @param string $sValue
 	 */
-	public function __construct($sValue=null, $iMinLength = null, $iMaxLength=null) {
+	public function __construct($sValue=null) {
 		parent::__construct($sValue, null, 5);
 	}
 
