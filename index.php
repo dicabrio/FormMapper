@@ -107,12 +107,22 @@ $oForm->addSubmitButton('cancel', new ActionButton('Cancel'), new CancelHandler(
 
 $oForm->listen();
 
+$aErrors = $oFormMapper->getMappingErrors();
+
 ?>
 <html>
 	<head>
 		<title>FormMapper example</title>
 	</head>
 	<body>
+
+		<?php if (count($aErrors) > 0) : ?>
+		<ul style="color: #fff; background: red;">
+		<?php foreach ($aErrors as $sError) : ?>
+			<li><?php echo $sError; ?></li>
+		<?php endforeach; ?>
+		</ul>
+		<?php endif; ?>
 		<?php echo $oForm->begin(); ?>
 		<table>
 			<tr>
