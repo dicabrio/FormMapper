@@ -69,7 +69,6 @@ abstract class Form {
 	protected function addFormElement($sIdentifier, FormElement $oFormElement) {
 
 		$sFormElementName = $oFormElement->getName();
-		$oFormElement->setValue($this->getValueFromRequest($sFormElementName));
 		$this->aFormElementsByIdentifier[$sIdentifier] = $oFormElement;
 		$this->aFormElementsByName[$sFormElementName][] = $oFormElement;
 		
@@ -137,7 +136,6 @@ abstract class Form {
 	 * Listen if the form is submitted. It will tell the handlers to fire if the right button is pressed
 	 */
 	public function listen() {
-
 		foreach ($this->aSubmitButtonsAndHandlers as $aSingleSubmitButtonAndHandler) {
 			$oButton = $aSingleSubmitButtonAndHandler['FormElement'];
 			$oHandler = $aSingleSubmitButtonAndHandler['FormHandler'];
@@ -145,11 +143,19 @@ abstract class Form {
 			$sValueFromRequest = $this->getValueFromRequest($oButton->getName());
 
 			if ($sValueFromRequest == $oButton->getValue()) {
+				$this->populateFormElementsWithRequestData();
 				$oHandler->handleForm($this);
 			}
 		}
+	}
 
-
+	/**
+	 * @return void
+	 */
+	private function populateFormElementsWithRequestData() {
+		foreach ($this->aFormElementsByIdentifier as $oFormElement) {
+			$oFormElement->setValue($this->getValueFromRequest($oFormElement->getName()));
+		}
 	}
 
 	/**

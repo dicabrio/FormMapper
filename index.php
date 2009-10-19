@@ -85,23 +85,30 @@ class CancelHandler implements FormHandler {
 
 class TestForm extends Form {
 
+	private $aElements = array();
+
 	/**
 	 * @param Request $oReq
-	 * @param FormHandler $oSaveHandler
-	 * @param FormHandler $oCancelHandler
+	 * @param array $aElements
 	 */
-	public function __construct(Request $oReq) {
+	public function __construct(Request $oReq, $aElements=array()) {
+		$this->aElements = $aElements;
 		parent::__construct($oReq, $_SERVER['PHP_SELF'], Request::POST, 'testform');
 	}
 
 	protected function defineFormElements() {
-		parent::addFormElement('test', new TextInput('test'));
+
+		foreach ($this->aElements as $sIdentifier => $oFormElement) {
+			parent::addFormElement($sIdentifier, $oFormElement);
+		}
 	}
 
 }
 
+$oFormElement = new TextInput('test');
+$oFormElement->setValue('bladiebladiebla');
 
-$oForm = new TestForm(Request::getInstance());
+$oForm = new TestForm(Request::getInstance(), array('test' => $oFormElement));
 
 $oFormMapper = new TestMapper($oForm);
 $oForm->addSubmitButton('save', new ActionButton('Save'), new SaveHandler($oFormMapper));
