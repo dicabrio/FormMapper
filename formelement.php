@@ -27,6 +27,11 @@ interface FormElement {
 	public function setValue($sValue);
 
 	/**
+	 * @return boolean
+	 */
+	public function isSelected();
+
+	/**
 	 * when this element cannot be mapped this method will be called
 	 */
 	public function notMapped();

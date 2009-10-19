@@ -61,7 +61,14 @@ class Input implements FormElement {
 		return '<input type="'.$this->sType.'" name="'.$this->sName.'" value="'.$this->sValue.'"'.$this->sStyle.' />';
 	}
 
+	/**
+	 * @return void
+	 */
 	public function notMapped() {
 		$this->sStyle = ' style="border: 1px solid red;"';
+	}
+
+	public function isSelected() {
+		return true;
 	}
 }

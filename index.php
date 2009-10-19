@@ -1,5 +1,7 @@
 <?php
 
+// get the source at: http://github.com/dicabrio/FormMapper
+
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
@@ -93,7 +95,7 @@ class TestForm extends Form {
 	}
 
 	protected function defineFormElements() {
-		parent::addFormElement(new TextInput('test'));
+		parent::addFormElement('test', new TextInput('test'));
 	}
 
 }

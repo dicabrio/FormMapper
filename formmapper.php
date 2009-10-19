@@ -42,10 +42,10 @@ abstract class FormMapper {
 	abstract protected function defineFormElementToDomainEntityMapping();
 
 	/**
-	 * @param string $sFormElementIdentifier
+	 * @param string $sFormElementName
 	 * @param string $sDomainEntity
 	 */
-	protected function addFormElementToDomainEntityMapping($sFormElementIdentifier, $sDomainEntity) {
+	protected function addFormElementToDomainEntityMapping($sFormElementName, $sDomainEntity) {
 
 		if (!class_exists($sDomainEntity, true)) {
 			throw new FormMapperException('The specified domain entity does not exist: '.$sDomainEntity);
@@ -56,7 +56,7 @@ abstract class FormMapper {
 			throw new FormMapperException('Given domain entity is not a valid DomainEntity');
 		}
 
-		$this->aFormElementsToDomainEntitiesMapping[$sFormElementIdentifier] = $sDomainEntity;
+		$this->aFormElementsToDomainEntitiesMapping[$sFormElementName] = $sDomainEntity;
 	}
 
 	/**
@@ -90,19 +90,19 @@ abstract class FormMapper {
 
 	/**
 	 *
-	 * @param string $sFormElementIdentifier
+	 * @param string $sFormElementName
 	 * @param string $sDomainEntity
 	 * @return DomainEntity
 	 */
-	private function constructModelFromFormElement($sFormElementIdentifier, $sDomainEntity) {
+	private function constructModelFromFormElement($sFormElementName, $sDomainEntity) {
 
-		$oFormElement = $this->oForm->getFormElement($sFormElementIdentifier);
+		$oFormElement = $this->oForm->getFormElementByName($sFormElementName);
 		try {
 			return $this->constructModel($sDomainEntity, array($oFormElement->getValue()));
 		} catch (Exception $e) {
 
 			$oFormElement->notMapped();
-			$this->aMappingErrors[$sFormElementIdentifier] = 'error'.$sFormElementIdentifier;
+			$this->aMappingErrors[$sFormElementName] = 'error'.$sFormElementName;
 
 			return null;
 		}
@@ -145,8 +145,8 @@ abstract class FormMapper {
 	 */
 	public function constructModelsFromForm() {
 
-		foreach ($this->aFormElementsToDomainEntitiesMapping as $sFormElementIdentifier => $sDomainEntity) {
-			$this->aConstructedModels[$sFormElementIdentifier] = $this->constructModelFromFormElement($sFormElementIdentifier, $sDomainEntity);
+		foreach ($this->aFormElementsToDomainEntitiesMapping as $sFormElementName => $sDomainEntity) {
+			$this->aConstructedModels[$sFormElementName] = $this->constructModelFromFormElement($sFormElementName, $sDomainEntity);
 		}
 
 		if ($this->hasErrors()) {

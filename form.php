@@ -22,9 +22,11 @@ abstract class Form {
 
 	private $sIdentifier;
 
-	private $aFormElements = array();
+	private $aFormElementsByIdentifier = array();
 
 	private $aSubmitButtonsAndHandlers = array();
+
+	private $aFormElementsByName = array();
 
 	/**
 	 * @param Request $oReq
@@ -60,14 +62,16 @@ abstract class Form {
 
 	/**
 	 * this method is only allowed to be called in the defineFormElements method
-	 * 
+	 *
+	 * @param string $sIdentifier
 	 * @param FormElement $oFormElement
 	 */
-	protected function addFormElement(FormElement $oFormElement) {
+	protected function addFormElement($sIdentifier, FormElement $oFormElement) {
 
 		$sFormElementName = $oFormElement->getName();
 		$oFormElement->setValue($this->getValueFromRequest($sFormElementName));
-		$this->aFormElements[$oFormElement->getName()] = $oFormElement;
+		$this->aFormElementsByIdentifier[$sIdentifier] = $oFormElement;
+		$this->aFormElementsByName[$sFormElementName][] = $oFormElement;
 		
 	}
 
@@ -76,11 +80,37 @@ abstract class Form {
 	 * @return FormElement
 	 */
 	public function getFormElement($sFormElementIdentifier) {
-		if (!isset($this->aFormElements[$sFormElementIdentifier])) {
+		if (!isset($this->aFormElementsByIdentifier[$sFormElementIdentifier])) {
 			throw new FormException('requested form element is not defined in this form: '.$sFormElementIdentifier);
 		}
 
-		return $this->aFormElements[$sFormElementIdentifier];
+		return $this->aFormElementsByIdentifier[$sFormElementIdentifier];
+	}
+
+	/**
+	 *
+	 * @param string $sFormElementName
+	 * @return FormElement
+	 */
+	public function getFormElementByName($sFormElementName) {
+		if (!isset($this->aFormElementsByName[$sFormElementName])) {
+			throw new FormException('No such elementname defined: '.$sFormElementName);
+		}
+
+		$aElements = $this->aFormElementsByName[$sFormElementName];
+		if (!is_array($aElements) || count($aElements) == 0) {
+			throw new FormException('No such elements for this elementname defined: '.$sFormElementName);
+		}
+
+		if (count($aElements) == 1) {
+			return current($aElements);
+		}
+
+		foreach ($aElements as $oFormElement) {
+			if ($oFormElement->isSelected()) {
+				return $oFormElement;
+			}
+		}
 	}
 
 	/**
