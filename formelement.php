@@ -22,6 +22,11 @@ interface FormElement {
 	public function getName();
 
 	/**
+	 * @return string
+	 */
+	public function getType();
+
+	/**
 	 * @param string $sValue
 	 */
 	public function setValue($sValue);

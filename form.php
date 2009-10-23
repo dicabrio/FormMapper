@@ -1,11 +1,6 @@
 <?php
-/* 
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 /**
- * Description of form
+ * The Form
  *
  * @author robertcabri
  */
@@ -14,18 +9,41 @@ abstract class Form {
 	/**
 	 * @var Request
 	 */
-	private $oReq;
+	private $oRequest;
 
-	private $sMethod;
+	/**
+	 * @var string
+	 */
+	private $sFormMethod;
 
-	private $sAction;
+	/**
+	 * @var string
+	 */
+	private $sFormAction;
 
-	private $sIdentifier;
+	/**
+	 * @var string
+	 */
+	private $sFormIdentifier;
 
+	/**
+	 * @var string
+	 */
+	private $sFormEnctype;
+
+	/**
+	 * @var array
+	 */
 	private $aFormElementsByIdentifier = array();
 
+	/**
+	 * @var array
+	 */
 	private $aSubmitButtonsAndHandlers = array();
 
+	/**
+	 * @var array
+	 */
 	private $aFormElementsByName = array();
 
 	/**
@@ -35,10 +53,11 @@ abstract class Form {
 	 * @param string $sIdentifier
 	 */
 	public function __construct(Request $oReq, $sAction, $sMethod='post', $sIdentifier=null) {
-		$this->oReq = $oReq;
-		$this->sAction = $sAction;
-		$this->sMethod = $sMethod;
-		$this->sIdentifier = $sIdentifier;
+		
+		$this->oRequest = $oReq;
+		$this->sFormAction = $sAction;
+		$this->sFormMethod = $sMethod;
+		$this->sFormIdentifier = $sIdentifier;
 
 		$this->defineFormElements();
 	}
@@ -53,11 +72,12 @@ abstract class Form {
 	 * @return mixed
 	 */
 	private function getValueFromRequest($sRequestKey) {
-		if ($this->sMethod == 'post') {
-			return $this->oReq->post($sRequestKey);
+		
+		if ($this->sFormMethod == 'post') {
+			return $this->oRequest->post($sRequestKey);
 		}
 
-		return $this->oReq->get($sRequestKey);
+		return $this->oRequest->get($sRequestKey);
 	}
 
 	/**
@@ -69,6 +89,11 @@ abstract class Form {
 	protected function addFormElement($sIdentifier, FormElement $oFormElement) {
 
 		$sFormElementName = $oFormElement->getName();
+
+		if ($oFormElement->getType() == 'file') {
+			$this->sFormEnctype = ' enctype="multipart/form-data"';
+		}
+
 		$this->aFormElementsByIdentifier[$sIdentifier] = $oFormElement;
 		$this->aFormElementsByName[$sFormElementName][] = $oFormElement;
 		
@@ -79,6 +104,7 @@ abstract class Form {
 	 * @return FormElement
 	 */
 	public function getFormElement($sFormElementIdentifier) {
+		
 		if (!isset($this->aFormElementsByIdentifier[$sFormElementIdentifier])) {
 			throw new FormException('requested form element is not defined in this form: '.$sFormElementIdentifier);
 		}
@@ -92,6 +118,7 @@ abstract class Form {
 	 * @return FormElement
 	 */
 	public function getFormElementByName($sFormElementName) {
+		
 		if (!isset($this->aFormElementsByName[$sFormElementName])) {
 			throw new FormException('No such elementname defined: '.$sFormElementName);
 		}
@@ -118,6 +145,7 @@ abstract class Form {
 	 * @param FormHandler $oHandler
 	 */
 	public function addSubmitButton($sButtonIdentifier, FormElement $oElement, FormHandler $oHandler) {
+		
 		$this->aSubmitButtonsAndHandlers[$sButtonIdentifier] = array('FormElement' => $oElement, 'FormHandler' => $oHandler);
 	}
 
@@ -126,6 +154,7 @@ abstract class Form {
 	 * @return FormElement
 	 */
 	public function getSubmitButton($sButtonIdentifier) {
+		
 		if (isset($this->aSubmitButtonsAndHandlers[$sButtonIdentifier])) {
 			return $this->aSubmitButtonsAndHandlers[$sButtonIdentifier]['FormElement'];
 		}
@@ -136,6 +165,7 @@ abstract class Form {
 	 * Listen if the form is submitted. It will tell the handlers to fire if the right button is pressed
 	 */
 	public function listen() {
+		
 		foreach ($this->aSubmitButtonsAndHandlers as $aSingleSubmitButtonAndHandler) {
 			$oButton = $aSingleSubmitButtonAndHandler['FormElement'];
 			$oHandler = $aSingleSubmitButtonAndHandler['FormHandler'];
@@ -153,6 +183,7 @@ abstract class Form {
 	 * @return void
 	 */
 	private function populateFormElementsWithRequestData() {
+		
 		foreach ($this->aFormElementsByIdentifier as $oFormElement) {
 			$oFormElement->setValue($this->getValueFromRequest($oFormElement->getName()));
 		}
@@ -162,13 +193,15 @@ abstract class Form {
 	 * @return string
 	 */
 	public function begin() {
-		return '<form id="'.$this->sIdentifier.'" method="'.$this->sMethod.'" action="'.$this->sAction.'">';
+		
+		return '<form id="'.$this->sFormIdentifier.'" method="'.$this->sFormMethod.'" action="'.$this->sFormAction.'"'.$this->sFormEnctype.'>';
 	}
 
 	/**
 	 * @return sring
 	 */
 	public function end() {
+
 		return '</form>';
 	}
 
@@ -176,7 +209,8 @@ abstract class Form {
 	 * @return string
 	 */
 	public function getIdentifier() {
-		return $this->sIdentifier;
+		
+		return $this->sFormIdentifier;
 	}
 }
 
