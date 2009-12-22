@@ -2,16 +2,11 @@
 /**
  * A basic input field
  */
-class Input implements FormElement {
+class TextArea implements FormElement {
 
-	/**
-	 * @var string
-	 */
-	private $sType;
-
-	/**
-	 * @var string
-	 */
+/**
+ * @var string
+ */
 	private $sName;
 
 	/**
@@ -33,9 +28,8 @@ class Input implements FormElement {
 	 * @param string $sType
 	 * @param string $sName
 	 */
-	public function __construct($sType, $sName) {
+	public function __construct($sName) {
 		$this->sName = $sName;
-		$this->sType = $sType;
 	}
 
 	/**
@@ -64,12 +58,12 @@ class Input implements FormElement {
 	 */
 	public function __toString() {
 		try {
-		$sAttributes = "";
-		foreach ($this->attributes as $name => $value) {
-			$sAttributes .= sprintf(' %s="%s"', $name, $value);
-		}
+			$sAttributes = "";
+			foreach ($this->attributes as $name => $value) {
+				$sAttributes .= sprintf(' %s="%s"', $name, $value);
+			}
 
-		return '<input type="'.$this->sType.'" name="'.$this->sName.'" value="'.$this->sValue.'" '.$this->sStyle.' '.$sAttributes.' />';
+			return sprintf('<textarea id="%s" name="%s" %s %s>%s</textarea>', $this->sName, $this->sName, $this->sStyle, $sAttributes, $this->sValue);
 		} catch (Exception $e) {
 			return (string)$e->getMessage();
 		}
@@ -98,6 +92,6 @@ class Input implements FormElement {
 	 * @return string
 	 */
 	public function getType() {
-		return $this->sType;
+		return 'textarea';
 	}
 }

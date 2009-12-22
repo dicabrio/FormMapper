@@ -2,12 +2,7 @@
 /**
  * A basic input field
  */
-class Input implements FormElement {
-
-	/**
-	 * @var string
-	 */
-	private $sType;
+class Select implements FormElement {
 
 	/**
 	 * @var string
@@ -27,15 +22,19 @@ class Input implements FormElement {
 	/**
 	 * @var array
 	 */
+	private $options = array();
+
+	/**
+	 * @var array
+	 */
 	private $attributes = array();
 
 	/**
 	 * @param string $sType
 	 * @param string $sName
 	 */
-	public function __construct($sType, $sName) {
+	public function __construct($sName) {
 		$this->sName = $sName;
-		$this->sType = $sType;
 	}
 
 	/**
@@ -63,16 +62,28 @@ class Input implements FormElement {
 	 * @return string
 	 */
 	public function __toString() {
-		try {
-		$sAttributes = "";
-		foreach ($this->attributes as $name => $value) {
-			$sAttributes .= sprintf(' %s="%s"', $name, $value);
+
+		$options = "";
+		foreach ($this->options as $value => $label) {
+
+			$selected = "";
+			if ($value == $this->sValue) {
+				$selected = 'selected="selected"';
+			}
+
+			$options .= sprintf('<option value="%s" %s>%s</option>', $value, $selected, $label);
 		}
 
-		return '<input type="'.$this->sType.'" name="'.$this->sName.'" value="'.$this->sValue.'" '.$this->sStyle.' '.$sAttributes.' />';
-		} catch (Exception $e) {
-			return (string)$e->getMessage();
+		$attributes = "";
+		foreach ($this->attributes as $attName => $attValue) {
+			$attributes .= sprintf(' %s="%s"', $attName, $attValue);
 		}
+
+		return sprintf('<select name="%s" %s %s>%s</select>', $this->sName, $attributes, $this->sStyle, $options);
+	}
+
+	public function addOption($value, $label) {
+		$this->options[$value] = $label;
 	}
 
 	/**
@@ -98,6 +109,6 @@ class Input implements FormElement {
 	 * @return string
 	 */
 	public function getType() {
-		return $this->sType;
+		return 'select';
 	}
 }
