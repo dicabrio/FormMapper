@@ -24,11 +24,11 @@ class DomainText implements DomainEntity {
 	 */
 	public function __construct($sValue=null, $iMinLength = null, $iMaxLength=null) {
 		if ($iMinLength !== null && mb_strlen($sValue, 'UTF-8') < $iMinLength) {
-			throw new InvalidArgumentException('Given string is too short', 1);
+			throw new InvalidArgumentException('value-too-short', 10);
 		}
 
 		if ($iMaxLength !== null && mb_strlen($sValue, 'UTF-8') > $iMaxLength) {
-			throw new InvalidArgumentException('Given string is too long', 1);
+			throw new InvalidArgumentException('value-too-long', 20);
 		}
 
 		$this->sValue = $sValue;

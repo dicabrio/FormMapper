@@ -53,40 +53,11 @@ abstract class FormMapper {
 
 		$oReflection = new ReflectionClass($sDomainEntity);
 		if (!$oReflection->implementsInterface('DomainEntity')) {
-			throw new FormMapperException('Given domain entity is not a valid DomainEntity');
+			throw new FormMapperException('Given domain entity is not a valid DomainEntity. Formelement:'.$sFormElementName.' to: '.$sDomainEntity);
 		}
 
 		$this->aFormElementsToDomainEntitiesMapping[$sFormElementName] = $sDomainEntity;
 	}
-
-	/**
-	 * @param string $sInputField
-	 * @param array $aArguments
-	 * @return TextElement
-	 */
-	//	private function buildInputToModel($sInputField, $aArguments=array()) {
-	//
-	//		if (!isset($this->aResultModels[$sInputField])) {
-	//
-	//			try {
-	//
-	//				if (isset($this->aFormfieldsToModel[$sInputField])) {
-	//					$sModelClass = $this->aFormfieldsToModel[$sInputField];
-	//				} else {
-	//					$sModelClass = self::C_DEFAULT_MODEL;
-	//				}
-	//
-	//				array_unshift($aArguments, $this->getFromReq($sInputField));
-	//				$this->aResultModels[$sInputField] = $this->constructModel($sModelClass, $aArguments);
-	//			} catch (Exception $e) {
-	//				$this->aResultModels[$sInputField] = $this->constructModel(self::C_ERROR_TEXT_MODEL, array($this->getFromReq($sInputField)));
-	//				$this->aErrors[$sInputField] = 'error'.$sInputField;
-	//			}
-	//
-	//		}
-	//
-	//		return $this->aResultModels[$sInputField];
-	//	}
 
 	/**
 	 *
@@ -102,7 +73,7 @@ abstract class FormMapper {
 		} catch (Exception $e) {
 
 			$oFormElement->notMapped();
-			$this->aMappingErrors[$sFormElementName] = 'error'.$sFormElementName;
+			$this->aMappingErrors[$sFormElementName] = $sFormElementName.'-'.$e->getMessage();
 
 			return null;
 		}
@@ -121,24 +92,6 @@ abstract class FormMapper {
 		$oReflectionClass = new ReflectionClass($sClass);
 		return $oReflectionClass->newInstanceArgs($aArguments);
 	}
-
-	/**
-	 * @param string $sInputFieldString
-	 * @return array
-	 */
-	//	private function getRequiredModels($sInputFieldString) {
-	//		$aFields = array($sInputFieldString);
-	//		if (strpos($sInputFieldString, ',')) {
-	//			$aFields = explode(',', $sInputFieldString);
-	//		}
-	//
-	//		$aArgument = array();
-	//		foreach ($aFields as $sField) {
-	//			$aArgument[] = $this->buildInputToModel($sField);
-	//		}
-	//
-	//		return $aArgument;
-	//	}
 
 	/**
 	 * @throws FormMapperException if there are errors while mapping formelements to domainentities
@@ -165,7 +118,14 @@ abstract class FormMapper {
 		return $this->aMappingErrors;
 	}
 
+	public function addMappingError($key, $errormsg) {
+		$this->aMappingErrors[$key] = $errormsg;
+	}
+
 	/**
+	 * get the constructed model. If the model was not constructed because the there was no mapping defined.
+	 * It will return the raw value
+	 *
 	 * @param string $sFormElementIdentifier
 	 * @return DomainEntity
 	 */
@@ -174,7 +134,7 @@ abstract class FormMapper {
 			return $this->aConstructedModels[$sFormElementIdentifier];
 		}
 
-		return null;
+		return $this->oForm->getFormElement($sFormElementIdentifier)->getValue();
 	}
 
 }

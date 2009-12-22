@@ -13,7 +13,8 @@ include('formmapper.php');
 include('domainentity.php');
 include('domaintext.php');
 include('input.php');
-include('shorttext.php');
+include('name.php');
+include('email.php');
 
 class Button extends Input {
 	public function __construct($sName, $sValue) {
@@ -37,16 +38,17 @@ class TextInput extends Input {
 class TestMapper extends FormMapper {
 
 	protected function defineFormElementToDomainEntityMapping() {
-		$this->addFormElementToDomainEntityMapping('test', 'ShortText');
+		$this->addFormElementToDomainEntityMapping('name', 'Name');
+		$this->addFormElementToDomainEntityMapping('email', 'Email');
 	}
 
 }
 
 class SaveHandler implements FormHandler {
 
-	/**
-	 * @var FormMapper
-	 */
+/**
+ * @var FormMapper
+ */
 	private $oMapper;
 
 	public function __construct(FormMapper $oMapper) {
@@ -63,7 +65,7 @@ class SaveHandler implements FormHandler {
 			echo '</pre>';
 
 		} catch (FormMapperException $e) {
-			// error when mapping
+		// error when mapping
 			echo  '<pre>';
 			print_r($this->oMapper->getMappingErrors());
 			echo '</pre>';
@@ -83,6 +85,9 @@ class CancelHandler implements FormHandler {
 	}
 }
 
+/**
+ * Example form.
+ */
 class TestForm extends Form {
 
 	private $aElements = array();
@@ -99,16 +104,43 @@ class TestForm extends Form {
 	protected function defineFormElements() {
 
 		foreach ($this->aElements as $sIdentifier => $oFormElement) {
-			parent::addFormElement($sIdentifier, $oFormElement);
+			parent::addFormElement($oFormElement->getName(), $oFormElement);
 		}
 	}
 
 }
 
-$oFormElement = new TextInput('test');
-$oFormElement->setValue('bladiebladiebla');
+class OverViewForm extends Form {
+	private $elements = array();
+	public function __construct(Request $oReq, $elements=array()) {
+		$this->elements = $elements;
+		parent::__construct($oReq, $_SERVER['PHP_SELF'], Request::POST, 'overviewform');
+	}
+	protected function defineFormElements() {
+		foreach ($this->elements as $formElement) {
+			$this->addFormElement($formElement->getName(), $formElement);
+		}
+	}
+}
 
-$oForm = new TestForm(Request::getInstance(), array('test' => $oFormElement));
+$blaatGegevens = array(	array('id' => 1, 'title' => 'Boe', 'iets' => 'WOW'),
+						array('id' => 2, 'title' => 'Schrik', 'iets' => 'Brrrrr'));
+
+$overviewFields = array();
+foreach ($blaatGegevens as $blaat) {
+	$element = new Input('checkbox', 'select_'.$blaat['id']);
+}
+
+$request = Request::getInstance();
+$overviewForm = new OverViewForm($request, array());
+
+$nameElement = new TextInput('name');
+$nameElement->setValue('bladiebladiebla');
+
+$emailElement = new TextInput('email');
+$emailElement->setValue('example@example.com');
+
+$oForm = new TestForm($request, array('name' => $nameElement, 'email' => $emailElement));
 
 $oFormMapper = new TestMapper($oForm);
 $oForm->addSubmitButton('save', new ActionButton('Save'), new SaveHandler($oFormMapper));
@@ -127,29 +159,82 @@ $aErrors = $oFormMapper->getMappingErrors();
 
 		<?php if (count($aErrors) > 0) : ?>
 		<ul style="color: #fff; background: red;">
-		<?php foreach ($aErrors as $sError) : ?>
+				<?php foreach ($aErrors as $sError) : ?>
 			<li><?php echo $sError; ?></li>
-		<?php endforeach; ?>
+				<?php endforeach; ?>
 		</ul>
 		<?php endif; ?>
 		<?php echo $oForm->begin(); ?>
-		<table>
-			<tr>
-				<td>
-					<label>test: </label>
-					<?php echo $oForm->getFormElement('test'); ?>
-					<?php echo $oForm->getSubmitButton('save'); ?>
-					<?php echo $oForm->getSubmitButton('cancel'); ?>
-				</td>
-			</tr>
-		</table>
+		<fieldset>
+			<legend>User</legend>
+			<table>
+				<tr>
+					<td>
+						<label>Name: </label>
+					</td>
+					<td>
+						<?php echo $oForm->getFormElement('name'); ?>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<label>Email: </label>
+					</td>
+					<td>
+						<?php echo $oForm->getFormElement('email'); ?>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<label>Actions: </label>
+					</td>
+					<td>
+						<?php echo $oForm->getSubmitButton('save'); ?>
+						<a href="javascript:history.go(-1);">Cancel</a>
+					</td>
+				</tr>
+			</table>
+		</fieldset>
 		<?php echo $oForm->end(); ?>
 
+		<?php $overviewErrors  = array(); ?>
+		<?php if (count($overviewErrors) > 0) : ?>
+		<ul style="color: #fff; background: red;">
+				<?php foreach ($overviewErrors as $sError) : ?>
+			<li><?php echo $sError; ?></li>
+				<?php endforeach; ?>
+		</ul>
+		<?php endif; ?>
+		<?php echo $overviewForm->begin(); ?>
+		<fieldset>
+			<legend>Users</legend>
+			<table>
+				<thead>
+					<tr>
+						<th>&nbsp;</th>
+						<th>Title</th>
+						<th>Something</th>
+						<th>Acties</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr>
+						<td></td>
+						<td></td>
+						<td></td>
+						<td></td>
+					</tr>
+				</tbody>
+			</table>
+		</fieldset>
+		<?php echo $overviewForm->end(); ?>
+
+
 		<?php $sFileContent = file_get_contents(__FILE__); ?>
-<strong>Simple implementation:</strong>
-<pre style="background: #ccc; padding: 10px;">
-<?php echo htmlentities($sFileContent); ?>
-</pre>
+		<strong>Simple implementation:</strong>
+		<pre style="background: #ccc; padding: 10px;">
+			<?php echo htmlentities($sFileContent); ?>
+		</pre>
 
 	</body>
 </html>

@@ -1,6 +1,6 @@
 <?php
 /**
- * 
+ * A basic input field
  */
 class Input implements FormElement {
 
@@ -62,6 +62,14 @@ class Input implements FormElement {
 	}
 
 	/**
+	 * @param string $attribute
+	 * @param string $value
+	 */
+	public function addAttribute($attribute, $value) {
+		$this->attributes[$attribute] = $value;
+	}
+
+	/**
 	 * @return void
 	 */
 	public function notMapped() {
@@ -70,5 +78,12 @@ class Input implements FormElement {
 
 	public function isSelected() {
 		return true;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getType() {
+		return $this->sType;
 	}
 }
