@@ -111,4 +111,19 @@ class Select implements FormElement {
 	public function getType() {
 		return 'select';
 	}
+
+	/**
+	 * Declare the mapping for this form element. If no mapping is define it will return the mapping
+	 * defined for this element
+	 *
+	 * @param string $sModelName
+	 */
+	public function mapTo($sModelName=null) {
+
+		if ($sModelName === null) {
+			return $this->mapping;
+		}
+		$this->mapping = $sModelName;
+
+	}
 }

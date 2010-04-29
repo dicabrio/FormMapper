@@ -10,6 +10,7 @@ include('form.php');
 include('formelement.php');
 include('formhandler.php');
 include('formmapper.php');
+include('formelementimpl.php');
 include('domainentity.php');
 include('domaintext.php');
 include('input.php');
@@ -35,15 +36,6 @@ class TextInput extends Input {
 	}
 }
 
-class TestMapper extends FormMapper {
-
-	protected function defineFormElementToDomainEntityMapping() {
-		$this->addFormElementToDomainEntityMapping('name', 'Name');
-		$this->addFormElementToDomainEntityMapping('email', 'Email');
-	}
-
-}
-
 class SaveHandler implements FormHandler {
 
 /**
@@ -58,10 +50,11 @@ class SaveHandler implements FormHandler {
 	public function handleForm(Form $oForm) {
 
 		try {
-			$this->oMapper->constructModelsFromForm();
+			$this->oMapper->constructModelsFromForm($oForm);
 			echo 'done mapping';
 			echo  '<pre>';
-			print_r($this->oMapper->getModel('test'));
+			print_r($this->oMapper->getModel('name'));
+			print_r($this->oMapper->getModel('email'));
 			echo '</pre>';
 
 		} catch (FormMapperException $e) {
@@ -75,79 +68,33 @@ class SaveHandler implements FormHandler {
 	}
 }
 
-class CancelHandler implements FormHandler {
-	public function __construct() {
-
-	}
-
-	public function handleForm(Form $oForm) {
-		echo 'Cancel->handleForm called for form: '.$oForm->getIdentifier();
-	}
-}
-
-/**
- * Example form.
- */
-class TestForm extends Form {
-
-	private $aElements = array();
-
-	/**
-	 * @param Request $oReq
-	 * @param array $aElements
-	 */
-	public function __construct(Request $oReq, $aElements=array()) {
-		$this->aElements = $aElements;
-		parent::__construct($oReq, $_SERVER['PHP_SELF'], Request::POST, 'testform');
-	}
-
-	protected function defineFormElements() {
-
-		foreach ($this->aElements as $sIdentifier => $oFormElement) {
-			parent::addFormElement($oFormElement->getName(), $oFormElement);
-		}
-	}
-
-}
-
-class OverViewForm extends Form {
-	private $elements = array();
-	public function __construct(Request $oReq, $elements=array()) {
-		$this->elements = $elements;
-		parent::__construct($oReq, $_SERVER['PHP_SELF'], Request::POST, 'overviewform');
-	}
-	protected function defineFormElements() {
-		foreach ($this->elements as $formElement) {
-			$this->addFormElement($formElement->getName(), $formElement);
-		}
-	}
-}
-
-$blaatGegevens = array(	array('id' => 1, 'title' => 'Boe', 'iets' => 'WOW'),
-						array('id' => 2, 'title' => 'Schrik', 'iets' => 'Brrrrr'));
-
-$overviewFields = array();
-foreach ($blaatGegevens as $blaat) {
-	$element = new Input('checkbox', 'select_'.$blaat['id']);
-}
-
 $request = Request::getInstance();
-$overviewForm = new OverViewForm($request, array());
 
+// create a form element
 $nameElement = new TextInput('name');
 $nameElement->setValue('bladiebladiebla');
 
+// create a form element
 $emailElement = new TextInput('email');
 $emailElement->setValue('example@example.com');
 
-$oForm = new TestForm($request, array('name' => $nameElement, 'email' => $emailElement));
+// Creating the form
+$oForm = new Form($request, $_SERVER['PHP_SELF'], Request::POST, 'testform');
+$oForm->addFormElement('name', $nameElement);
+$oForm->addFormElement('email', $emailElement);
 
-$oFormMapper = new TestMapper($oForm);
+// Creating the mapper
+$oFormMapper = new FormMapper();
+$oFormMapper->addFormElementToDomainEntityMapping('name', 'Name');
+$oFormMapper->addFormElementToDomainEntityMapping('email', 'Email');
+
+// add some action
 $oForm->addSubmitButton('save', new ActionButton('Save'), new SaveHandler($oFormMapper));
-$oForm->addSubmitButton('cancel', new ActionButton('Cancel'), new CancelHandler());
 
+// Let the form listen
 $oForm->listen();
 
+// errors when mapped. When not mapped this array will be empty
 $aErrors = $oFormMapper->getMappingErrors();
 
 ?>
@@ -173,7 +120,7 @@ $aErrors = $oFormMapper->getMappingErrors();
 						<label>Name: </label>
 					</td>
 					<td>
-						<?php echo $oForm->getFormElement('name'); ?>
+						<?php echo $oForm->getFormElement('name'); ?> (minimum of 3 letters)
 					</td>
 				</tr>
 				<tr>
@@ -181,7 +128,7 @@ $aErrors = $oFormMapper->getMappingErrors();
 						<label>Email: </label>
 					</td>
 					<td>
-						<?php echo $oForm->getFormElement('email'); ?>
+						<?php echo $oForm->getFormElement('email'); ?> (valid emailaddress)
 					</td>
 				</tr>
 				<tr>
@@ -190,45 +137,12 @@ $aErrors = $oFormMapper->getMappingErrors();
 					</td>
 					<td>
 						<?php echo $oForm->getSubmitButton('save'); ?>
-						<a href="javascript:history.go(-1);">Cancel</a>
+						<a href="<?php echo $_SERVER['PHP_SELF']; ?>">Cancel</a>
 					</td>
 				</tr>
 			</table>
 		</fieldset>
 		<?php echo $oForm->end(); ?>
-
-		<?php $overviewErrors  = array(); ?>
-		<?php if (count($overviewErrors) > 0) : ?>
-		<ul style="color: #fff; background: red;">
-				<?php foreach ($overviewErrors as $sError) : ?>
-			<li><?php echo $sError; ?></li>
-				<?php endforeach; ?>
-		</ul>
-		<?php endif; ?>
-		<?php echo $overviewForm->begin(); ?>
-		<fieldset>
-			<legend>Users</legend>
-			<table>
-				<thead>
-					<tr>
-						<th>&nbsp;</th>
-						<th>Title</th>
-						<th>Something</th>
-						<th>Acties</th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr>
-						<td></td>
-						<td></td>
-						<td></td>
-						<td></td>
-					</tr>
-				</tbody>
-			</table>
-		</fieldset>
-		<?php echo $overviewForm->end(); ?>
-
 
 		<?php $sFileContent = file_get_contents(__FILE__); ?>
 		<strong>Simple implementation:</strong>

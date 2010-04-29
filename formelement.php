@@ -40,4 +40,5 @@ interface FormElement {
 	 * when this element cannot be mapped this method will be called
 	 */
 	public function notMapped();
+
 }

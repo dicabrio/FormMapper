@@ -4,7 +4,7 @@
  *
  * @author robertcabri
  */
-abstract class Form {
+class Form {
 
 	/**
 	 * @var Request
@@ -65,19 +65,27 @@ abstract class Form {
 	/**
 	 * In this method you should define the form. This is done to force you adding elements
 	 */
-	abstract protected function defineFormElements();
+	protected function defineFormElements() {}
 
 	/**
 	 * @param string $sRequestKey
 	 * @return mixed
 	 */
-	private function getValueFromRequest($sRequestKey) {
-		
-		if ($this->sFormMethod == 'post') {
-			return $this->oRequest->post($sRequestKey);
+	private function getValueFromRequest(FormElement $formElement) {
+	
+		$formElementName = $formElement->getName();
+	
+		if ($formElement->getType() == 'file') {
+			return $this->oRequest->files($formElementName);
+		} else {
+			return $this->oRequest->request($formElementName);
 		}
+		
+		//if ($this->sFormMethod == 'post') {
+		//	return $this->oRequest->post($sRequestKey);
+		//}
 
-		return $this->oRequest->get($sRequestKey);
+		//return $this->oRequest->get($sRequestKey);
 	}
 
 	/**
@@ -86,7 +94,7 @@ abstract class Form {
 	 * @param string $sIdentifier
 	 * @param FormElement $oFormElement
 	 */
-	protected function addFormElement($sIdentifier, FormElement $oFormElement) {
+	public function addFormElement($sIdentifier, FormElement $oFormElement) {
 
 		$sFormElementName = $oFormElement->getName();
 
@@ -110,6 +118,15 @@ abstract class Form {
 		}
 
 		return $this->aFormElementsByIdentifier[$sFormElementIdentifier];
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getFormElements() {
+
+		return $this->aFormElementsByIdentifier;
+
 	}
 
 	/**
@@ -147,6 +164,7 @@ abstract class Form {
 	public function addSubmitButton($sButtonIdentifier, FormElement $oElement, FormHandler $oHandler) {
 		
 		$this->aSubmitButtonsAndHandlers[$sButtonIdentifier] = array('FormElement' => $oElement, 'FormHandler' => $oHandler);
+		
 	}
 
 	/**
@@ -170,7 +188,7 @@ abstract class Form {
 			$oButton = $aSingleSubmitButtonAndHandler['FormElement'];
 			$oHandler = $aSingleSubmitButtonAndHandler['FormHandler'];
 
-			$sValueFromRequest = $this->getValueFromRequest($oButton->getName());
+			$sValueFromRequest = $this->getValueFromRequest($oButton);
 
 			if ($sValueFromRequest == $oButton->getValue()) {
 				$this->populateFormElementsWithRequestData();
@@ -185,7 +203,7 @@ abstract class Form {
 	private function populateFormElementsWithRequestData() {
 		
 		foreach ($this->aFormElementsByIdentifier as $oFormElement) {
-			$oFormElement->setValue($this->getValueFromRequest($oFormElement->getName()));
+			$oFormElement->setValue($this->getValueFromRequest($oFormElement));
 		}
 	}
 

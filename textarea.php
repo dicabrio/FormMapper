@@ -24,12 +24,15 @@ class TextArea implements FormElement {
 	 */
 	private $attributes = array();
 
+	private $mapping;
+
 	/**
 	 * @param string $sType
 	 * @param string $sName
 	 */
-	public function __construct($sName) {
+	public function __construct($sName, $value = null) {
 		$this->sName = $sName;
+		$this->sValue = $value;
 	}
 
 	/**
@@ -63,7 +66,7 @@ class TextArea implements FormElement {
 				$sAttributes .= sprintf(' %s="%s"', $name, $value);
 			}
 
-			return sprintf('<textarea id="%s" name="%s" %s %s>%s</textarea>', $this->sName, $this->sName, $this->sStyle, $sAttributes, $this->sValue);
+			return sprintf('<textarea id="%s" name="%s" %s %s>%s</textarea>', $this->sName, $this->sName, $this->sStyle, $sAttributes, htmlentities($this->sValue, ENT_COMPAT, 'UTF-8'));
 		} catch (Exception $e) {
 			return (string)$e->getMessage();
 		}
@@ -74,7 +77,10 @@ class TextArea implements FormElement {
 	 * @param string $value
 	 */
 	public function addAttribute($attribute, $value) {
+
 		$this->attributes[$attribute] = $value;
+		return $this;
+		
 	}
 
 	/**
@@ -94,4 +100,5 @@ class TextArea implements FormElement {
 	public function getType() {
 		return 'textarea';
 	}
+
 }

@@ -18,8 +18,6 @@ class Request
 	private $m_aPost;
 
 	private $m_aRequest;
-	
-	private $m_aFiles;
 
 	private $m_aCookie;
 
@@ -27,7 +25,8 @@ class Request
 
 	private static $m_oInstance;
 
-	private function __construct() {
+	private function __construct()
+	{
 		// Import variables
 		//TODO do some cleanup
 		$this->m_aGet 		= $_GET;
@@ -43,12 +42,14 @@ class Request
 	 *	the getInstance() method returns a single instance of the object
 	 * @return Request
 	 */
-	public static function getInstance() {
-		if( !isset( self::$m_oInstance ) ) {
+	public static function getInstance()
+	{
+		if( !isset( self::$m_oInstance ) )
+		{
 			$object = __CLASS__;
 			self::$m_oInstance = new $object;
 		}
-			
+
 		return self::$m_oInstance;
 	}
 
@@ -59,8 +60,9 @@ class Request
 	 * $param mixed $overwrite
 	 * @return mixed
 	 */
-	public function post($p_sParameter, $overwrite=null) {
-		return $this->request($this->m_aPost, $p_sParameter, $overwrite);
+	public function post($p_sParameter, $overwrite=null)
+	{
+		return $this->getParamFromPool($this->m_aPost, $p_sParameter, $overwrite);
 	}
 
 	/**
@@ -70,8 +72,15 @@ class Request
 	 * $param mixed $overwrite
 	 * @return mixed
 	 */
-	public function get($p_sParameter, $overwrite=null) {
-		return $this->request($this->m_aGet, $p_sParameter, $overwrite);
+	public function get($p_sParameter, $overwrite=null)
+	{
+		return $this->getParamFromPool($this->m_aGet, $p_sParameter, $overwrite);
+	}
+
+	public function request($param, $overwrite=null) {
+
+		return $this->getParamFromPool($this->m_aRequest, $param, $overwrite);
+
 	}
 
 	/**
@@ -82,7 +91,7 @@ class Request
 	 * @return mixed
 	 */
 	public function cookie($param, $overwrite=null) {
-		return $this->request($this->m_aCookie, $param, $overwrite);
+		return $this->getParamFromPool($this->m_aCookie, $param, $overwrite);
 	}
 
 	/**
@@ -93,12 +102,13 @@ class Request
 	 * @param unknown_type $overwrite
 	 * @return unknown
 	 */
-	private function request($pool, $param, $overwrite) {
+	private function getParamFromPool($pool, $param, $overwrite) {
 		if ($overwrite !== null) {
 			return $overwrite;
 		}
 
-		if (isset($pool[$param])) {
+		if( isset( $pool[$param] ) )
+		{
 			return $pool[$param];
 		}
 
@@ -111,26 +121,28 @@ class Request
 	 * @param string $p_sFieldname
 	 * @return mixed
 	 */
-	public function files($psFieldname=null) {
-		if ($psFieldname === null) {
-			return $_FILES;
-		}
+	public function files( $psFieldname )
+	{
 		return Util::arrayPath($_FILES, $psFieldname);
 	}
 
-	public function requests() {
+	public function requests()
+	{
 		return $this->m_aRequest;
 	}
 
-	public function cookies() {
+	public function cookies()
+	{
 		return $this->m_aCookie;
 	}
 
-	public function posts() {
+	public function posts()
+	{
 		return $this->m_aPost;
 	}
 
-	public function gets() {
+	public function gets()
+	{
 		return $this->m_aGet;
 	}
 
@@ -140,23 +152,37 @@ class Request
 	 *
 	 * @return string
 	 */
-	public static function method() {
+	public static function method()
+	{
 		return strtolower($_SERVER['REQUEST_METHOD']);
 	}
 
-	public function setStrictCleanUp($p_bStrict) {
+	/**
+	 * redirect to the given url.
+	 *
+	 * @param string $url
+	 */
+	public function redirect($url) {
+		header('location:'.$url);
+		exit;
+	}
+
+	public function setStrictCleanUp( $p_bStrict )
+	{
 		$this->m_bStrict = $p_bStrict;
 	}
 
-	public function emptyRequest() {
-		unset($this->m_aRequest);
+	public function emptyRequest()
+	{
+		unset( $this->m_aRequest );
 	}
 
-	public static function cleanUp() {
-		$this->m_aGet = $this->cleanUserInput($this->m_aGet, $this->m_bStrict);
-		$this->m_aPost = $this->cleanUserInput($this->m_aPost, $this->m_bStrict);
-		$this->m_aRequest = $this->cleanUserInput($this->m_aRequest, $this->m_bStrict);
-		$this->m_aCookie = $this->cleanUserInput($this->m_aCookie, $this->m_bStrict);
+	public static function cleanUp()
+	{
+		$this->m_aGet 		= $this->cleanUserInput( $this->m_aGet, 	$this->m_bStrict );
+		$this->m_aPost 		= $this->cleanUserInput( $this->m_aPost, 	$this->m_bStrict );
+		$this->m_aRequest 	= $this->cleanUserInput( $this->m_aRequest, $this->m_bStrict );
+		$this->m_aCookie 	= $this->cleanUserInput( $this->m_aCookie, 	$this->m_bStrict );
 	}
 
 	/**
@@ -217,4 +243,3 @@ class Request
 		return $p_sIn;
 	}
 }
-?>
