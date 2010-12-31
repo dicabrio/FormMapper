@@ -81,9 +81,9 @@ class FormMapper {
 
 		$oFormElement = $this->oForm->getFormElementByName($sFormElementName);
 		try {
-		
+
 			return $this->constructModel($sDomainEntity, array($oFormElement->getValue()));
-			
+
 		} catch (Exception $e) {
 
 			$oFormElement->notMapped();
@@ -91,7 +91,7 @@ class FormMapper {
 
 			return null;
 		}
-		
+
 	}
 
 	/**
@@ -105,7 +105,8 @@ class FormMapper {
 		}
 
 		$oReflectionClass = new ReflectionClass($sClass);
-		return $oReflectionClass->newInstanceArgs($aArguments);
+		$domainEntity = $oReflectionClass->newInstanceArgs($aArguments);
+		return $domainEntity;
 	}
 
 	/**

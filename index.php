@@ -79,9 +79,9 @@ $emailElement = new TextInput('email');
 $emailElement->setValue('example@example.com');
 
 // Creating the form
-$oForm = new Form($request, $_SERVER['PHP_SELF'], Request::POST, 'testform');
-$oForm->addFormElement('name', $nameElement);
-$oForm->addFormElement('email', $emailElement);
+$oForm = new Form($_SERVER['PHP_SELF'], Request::POST, 'testform');
+$oForm->addFormElement($nameElement);
+$oForm->addFormElement($emailElement);
 
 // Creating the mapper
 $oFormMapper = new FormMapper();
@@ -92,7 +92,7 @@ $oFormMapper->addFormElementToDomainEntityMapping('email', 'Email');
 $oForm->addSubmitButton('save', new ActionButton('Save'), new SaveHandler($oFormMapper));
 
 // Let the form listen
-$oForm->listen();
+$oForm->listen($request);
 
 // errors when mapped. When not mapped this array will be empty
 $aErrors = $oFormMapper->getMappingErrors();
