@@ -9,10 +9,9 @@ class FormElementImpl implements FormElement {
 	private $mapping;
 
 	public function __construct($nodename, $name, $value=null) {
-
 		$this->node = $nodename;
-		$this->attributes['name'] = $name;
-		$this->attributes['value'] = $value;
+		$this->addAttribute('name', $name);
+		$this->addAttribute('value', $value);
 		
 	}
 
@@ -82,6 +81,16 @@ class FormElementImpl implements FormElement {
 
 		return $this->getAttribute('name');
 
+	}
+
+	/**
+	 *
+	 * @return string
+	 */
+	public function  getIdentifier() {
+
+		return $this->getAttribute('name');
+		
 	}
 
 	/**

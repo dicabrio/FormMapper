@@ -24,6 +24,11 @@ interface FormElement {
 	/**
 	 * @return string
 	 */
+	public function getIdentifier();
+
+	/**
+	 * @return string
+	 */
 	public function getType();
 
 	/**
