@@ -154,6 +154,19 @@ class Form {
 		}
 	}
 
+	public function notMapped($formElementName) {
+
+		if (!isset($this->aFormElementsByName[$formElementName])) {
+			throw new FormException('No such elementname defined: ' . $formElementName);
+		}
+
+		$aElements = $this->aFormElementsByName[$formElementName];
+		foreach ($aElements as $formElement) {
+			$formElement->notMapped();
+		}
+
+	}
+
 	/**
 	 * @return string
 	 */

@@ -80,13 +80,19 @@ class FormMapper {
 	private function constructModelFromFormElement($sFormElementName, $sDomainEntity) {
 
 		$oFormElement = $this->oForm->getFormElementByName($sFormElementName);
+
+		$value = null;
+		if ($oFormElement instanceof FormElement) {
+			$value = $oFormElement->getValue();
+		}
+
 		try {
 
-			return $this->constructModel($sDomainEntity, array($oFormElement->getValue()));
+			return $this->constructModel($sDomainEntity, array($value));
 
 		} catch (Exception $e) {
 
-			$oFormElement->notMapped();
+			$this->oForm->notMapped($sFormElementName);
 			$this->aMappingErrors[$sFormElementName] = $sFormElementName.'-'.$e->getMessage();
 
 			return null;
