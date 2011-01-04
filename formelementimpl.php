@@ -44,7 +44,7 @@ class FormElementImpl implements FormElement {
 
 	}
 
-	private function getAttribute($name) {
+	protected function getAttribute($name) {
 
 		if (isset($this->attributes[$name])) {
 			return $this->attributes[$name];

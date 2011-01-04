@@ -1,4 +1,5 @@
 <?php
+
 /**
  * A basic radio field
  */
@@ -9,10 +10,9 @@ class Radio extends FormElementImpl {
 	 * @param string $name
 	 */
 	public function __construct($name, $value=null) {
-		
+
 		parent::__construct('input', $name, $value);
 		$this->addAttribute('type', 'radio');
-		
 	}
 
 	/**
@@ -22,14 +22,27 @@ class Radio extends FormElementImpl {
 	 * @return string
 	 */
 	public function getIdentifier() {
-	
-		return parent::getIdentifier().'_'.parent::getValue();
-		
+
+		return parent::getIdentifier() . '_' . parent::getValue();
 	}
 
+	/**
+	 *
+	 * @param string $val
+	 */
 	public function setValue($val) {
 		if ($val == $this->getValue()) {
 			$this->addAttribute('checked', 'checked');
 		}
 	}
+
+	/**
+	 * @return boolean
+	 */
+	public function isSelected() {
+
+		return ('checked' == parent::getAttribute('checked'));
+		
+	}
+
 }
